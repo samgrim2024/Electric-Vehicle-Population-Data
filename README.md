@@ -10,11 +10,6 @@ Follow these steps to set up the project:
 
 ### 1. Clone the Repository
 
-```bash
-git clone https://github.com/your-username/electric-vehicle-population-data.git
-cd electric-vehicle-population-data
-```
-
 ### 2. Create and Activate a Virtual Environment
 
 Create a virtual environment to keep your project’s dependencies isolated:
