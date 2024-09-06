@@ -1,5 +1,5 @@
 import os
-import sqlalchemy import create_engine
+from sqlalchemy import create_engine
 
 DATABASE_TYPE = 'postgresql'
 DBAPI = 'pg8000'
@@ -11,3 +11,5 @@ PORT = 5432
 
 engine = create_engine(f'{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}')
 
+with engine.connect() as connection:
+    print("Connection successful!")
