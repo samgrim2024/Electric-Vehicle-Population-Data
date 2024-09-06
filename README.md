@@ -23,6 +23,8 @@ Activate the virtual environment:
 - On **macOS/Linux**:
   ```bash
   source venv/bin/activate
+  export PYTHONPATH=$(pwd)
+
   ```
 - On **Windows**:
   ```bash
