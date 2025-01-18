@@ -9,6 +9,9 @@ PASSWORD = os.getenv('DB_PASSWORD', '')
 DATABASE = 'ev_database'
 PORT = 5432
 
+from urllib.parse import quote_plus
+PASSWORD = quote_plus(PASSWORD)
+
 engine = create_engine(f'{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}')
 
 with engine.connect() as connection:
