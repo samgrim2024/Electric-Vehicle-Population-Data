@@ -1,43 +1,38 @@
 import pandas as pd
+from src.utils.connection import engine
+from tabulate import tabulate
 import matplotlib.pyplot as plt
 import seaborn as sns
-from tabulate import tabulate
-from src.utils.connection import engine
+import os
+
+# Define the path to the Visualisations folder inside src
+visualisation_path = os.path.join(os.getcwd(), "src", "Visualisations")
+os.makedirs(visualisation_path, exist_ok=True)
 
 
-# Helper Functions
 def load_data_to_postgres(file_path, table_name):
-    """
-    Load a CSV file into a PostgreSQL table.
-    :param file_path: Path to the CSV file.
-    :param table_name: Name of the table in PostgreSQL.
-    """
-    print(f"Loading data from {file_path} into table '{table_name}'...")
+    """Load CSV data into the PostgreSQL table."""
     df = pd.read_csv(file_path)
     df.to_sql(table_name, con=engine, if_exists="replace", index=False)
-    print(tabulate(df.head(), headers="keys", tablefmt="psql", showindex=False))
-    print(f"Data successfully inserted into PostgreSQL table '{table_name}'.")
+    print(f"Data loaded into PostgreSQL table '{table_name}'.")
 
 
 def execute_query(query):
-    """
-    Execute a SQL query and return results as a Pandas DataFrame.
-    :param query: The SQL query string.
-    :return: Query results as a Pandas DataFrame.
-    """
+    """Execute a SQL query and return the results as a Pandas DataFrame."""
     with engine.connect() as connection:
         return pd.read_sql_query(query, connection)
 
 
-def display_and_plot(df, title, x_col, y_col, chart_type="bar", palette="viridis"):
+def display_and_plot(df, title, x_col, y_col, chart_type="bar", palette="viridis", save_path=None):
     """
-    Display query results as a table and plot a visualization.
+    Display query results as a table and plot a visualisation.
     :param df: DataFrame to display and plot.
     :param title: Title of the chart.
     :param x_col: Column for x-axis.
     :param y_col: Column for y-axis.
     :param chart_type: Type of chart ('bar' or 'line').
-    :param palette: Color palette for the chart.
+    :param palette: Colour palette for the chart.
+    :param save_path: Path to save the plot image.
     """
     print(tabulate(df, headers="keys", tablefmt="psql", showindex=False))
 
@@ -46,12 +41,14 @@ def display_and_plot(df, title, x_col, y_col, chart_type="bar", palette="viridis
         sns.barplot(data=df, x=x_col, y=y_col, palette=palette)
     elif chart_type == "line":
         sns.lineplot(data=df, x=x_col, y=y_col, marker="o", color="b")
-    
     plt.title(title, fontsize=16)
     plt.xlabel(x_col, fontsize=12)
     plt.ylabel(y_col, fontsize=12)
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path)
+        print(f"Visualisation saved at: {save_path}")
     plt.show()
 
 
@@ -107,30 +104,34 @@ def get_cafv_eligibility_counts():
 
 # Main Script
 if __name__ == "__main__":
-    # Path to the CSV file
     file_path = "src/data/Electric_Vehicles.csv"
     table_name = "electric_vehicles"
 
-    # Load data into PostgreSQL
+    # Load data
     load_data_to_postgres(file_path, table_name)
 
-    # Run queries and display/plot results
-    print("\nEV Count by Manufacturer:")
+    # EV Count by Manufacturer
     ev_count = get_ev_count_by_make()
-    display_and_plot(ev_count, "EV Count by Manufacturer", "Make", "total_vehicles")
+    display_and_plot(ev_count, "EV Count by Manufacturer", "Make", "total_vehicles",
+                     save_path=f"{visualisation_path}/ev_count_by_make.png")
 
-    print("\nAverage Range by Vehicle Type:")
+    # Average Range by Vehicle Type
     avg_range = get_avg_range_by_vehicle_type()
-    display_and_plot(avg_range, "Average Range by Vehicle Type", "Electric Vehicle Type", "avg_range")
+    display_and_plot(avg_range, "Average Range by Vehicle Type", "Electric Vehicle Type", "avg_range",
+                     save_path=f"{visualisation_path}/avg_range_by_type.png")
 
-    print("\nEV Count by County:")
+    # EV Count by County
     ev_count_county = get_ev_count_by_county()
-    display_and_plot(ev_count_county, "EV Count by County", "County", "total_vehicles")
+    display_and_plot(ev_count_county, "EV Count by County", "County", "total_vehicles",
+                     save_path=f"{visualisation_path}/ev_count_by_county.png")
 
-    print("\nTop EV Models:")
+    # Top EV Models
     top_ev_models = get_top_ev_models(limit=10)
-    display_and_plot(top_ev_models, "Top EV Models", "Model", "total")
+    display_and_plot(top_ev_models, "Top EV Models", "Model", "total",
+                     save_path=f"{visualisation_path}/top_ev_models.png")
 
-    print("\nCAFV Eligibility Counts:")
+    # CAFV Eligibility Counts
     cafv_counts = get_cafv_eligibility_counts()
-    display_and_plot(cafv_counts, "CAFV Eligibility Counts", "Clean Alternative Fuel Vehicle (CAFV) Eligibility", "total")
+    display_and_plot(cafv_counts, "CAFV Eligibility Counts", 
+                     "Clean Alternative Fuel Vehicle (CAFV) Eligibility", "total",
+                     save_path=f"{visualisation_path}/cafv_eligibility_counts.png")
